@@ -792,3 +792,57 @@ Keep it simple - just the niche name and one sentence."""
     niches = ceo.think(prompt)
     
     return jsonify({'niches': niches})
+
+# ============== INVENTORY ALERTS ==============
+
+@app.route('/alerts')
+def inventory_alerts():
+    """Low stock and other alerts"""
+    products = load_products()
+    orders = load_orders()
+    
+    low_stock = [p for p in products if p.get('stock', 100) < 10]
+    out_of_stock = [p for p in products if p.get('stock', 100) <= 0]
+    
+    # Orders needing attention
+    pending_orders = [o for o in orders if o.get('status') == 'pending']
+    
+    return render_template('alerts.html', 
+                           low_stock=low_stock,
+                           out_of_stock=out_of_stock,
+                           pending_orders=pending_orders)
+
+# ============== PROFIT CALCULATOR ==============
+
+@app.route('/profit-calculator')
+def profit_calculator():
+    """Standalone profit calculator"""
+    return render_template('profit_calculator.html')
+
+@app.route('/api/calculate-profit', methods=['POST'])
+def calculate_profit_api():
+    """Detailed profit calculation"""
+    data = request.json
+    
+    product_cost = float(data.get('product_cost', 0))
+    shipping_cost = float(data.get('shipping_cost', 0))
+    selling_price = float(data.get('selling_price', 0))
+    platform_fee_percent = float(data.get('platform_fee', 2.9))
+    payment_processing_percent = float(data.get('payment_processing', 2.9))
+    
+    total_cost = product_cost + shipping_cost
+    
+    platform_fee = selling_price * (platform_fee_percent / 100)
+    payment_fee = selling_price * (payment_processing_percent / 100)
+    
+    total_fees = platform_fee + payment_fee
+    profit = selling_price - total_cost - total_fees
+    profit_margin = (profit / selling_price * 100) if selling_price > 0 else 0
+    
+    return jsonify({
+        'revenue': selling_price,
+        'total_cost': total_cost,
+        'fees': total_fees,
+        'profit': profit,
+        'profit_margin': round(profit_margin, 1)
+    })

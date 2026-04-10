@@ -846,3 +846,75 @@ def calculate_profit_api():
         'profit': profit,
         'profit_margin': round(profit_margin, 1)
     })
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        # For now, just redirect to dashboard
+        # Later: Stripe integration for 9/month
+        return redirect(url_for('dashboard'))
+    return render_template('signup.html')
+
+
+# ============== STRIPE PAYMENTS ($59/month) ==============
+
+import stripe
+
+# Get from environment or set test key (for now)
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+stripe.api_key = STRIPE_SECRET_KEY
+
+PRICE_ID = os.environ.get('STRIPE_PRICE_ID', 'price_placeholder')  # $59/month price ID
+
+@app.route('/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    """Create Stripe checkout for $59/month subscription"""
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': PRICE_ID,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=request.host_url + 'success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'cancel',
+        )
+        return jsonify({'url': checkout_session.url})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/success')
+def success():
+    return render_template('success.html')
+
+@app.route('/cancel')
+def cancel():
+    return render_template('cancel.html')
+
+@app.route('/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhooks for subscription events"""
+    payload = request.data
+    sig_header = request.headers.get('stripe-signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET')
+        )
+        
+        if event['type'] == 'checkout.session.completed':
+            # Handle successful subscription
+            session = event['data']['object']
+            # Save customer info, activate subscription, etc.
+            pass
+        elif event['type'] == 'customer.subscription.deleted':
+            # Handle cancelled subscription
+            pass
+            
+        return jsonify({'success': True})
+    except stripe.error.SignatureVerificationError:
+        return jsonify({'error': 'Invalid signature'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400

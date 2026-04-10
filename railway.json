@@ -10,6 +10,9 @@
   },
   "environmentVariables": [
     {"key": "GROQ_API_KEY", "value": ""},
-    {"key": "QWEN_API_KEY", "value": ""}
+    {"key": "QWEN_API_KEY", "value": ""},
+    {"key": "STRIPE_SECRET_KEY", "value": ""},
+    {"key": "STRIPE_WEBHOOK_SECRET", "value": ""},
+    {"key": "STRIPE_PRICE_ID", "value": ""}
   ]
 }

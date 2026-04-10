@@ -701,3 +701,51 @@ def auto_fulfill_all_pending():
         'fulfilled': len([r for r in results if r.get('success')]),
         'results': results
     })
+
+# ============== MARKETING TOOLS ==============
+
+@app.route('/marketing')
+def marketing():
+    """Marketing tools dashboard"""
+    return render_template('marketing.html')
+
+@app.route('/api/create-ad', methods=['POST'])
+def create_ad():
+    """AI creates ad copy"""
+    from ai_ceo import ceo
+    
+    data = request.json
+    product = data.get('product', '')
+    platform = data.get('platform', 'facebook')
+    
+    prompt = f"""Create a {platform} ad for this product. 
+Product: {product}
+
+Write:
+- Attention-grabbing headline
+- 2-3 body paragraphs
+- Call to action
+
+Keep it concise and high-converting."""
+    
+    ad = ceo.think(prompt)
+    
+    return jsonify({'ad': ad, 'platform': platform, 'product': product})
+
+@app.route('/api/create-email', methods=['POST'])
+def create_email():
+    """AI creates email marketing"""
+    from ai_ceo import ceo
+    
+    data = request.json
+    email_type = data.get('type', 'welcome')  # welcome, promotional, follow-up
+    
+    prompts = {
+        'welcome': 'Write a welcome email for a new customer who just made their first purchase',
+        'promotional': 'Write a promotional email offering 20% off their next order',
+        'follow-up': 'Write a follow-up email for customers who abandoned their cart'
+    }
+    
+    email = ceo.think(prompts.get(email_type, prompts['welcome']))
+    
+    return jsonify({'email': email, 'type': email_type})

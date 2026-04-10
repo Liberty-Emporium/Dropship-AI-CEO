@@ -749,3 +749,46 @@ def create_email():
     email = ceo.think(prompts.get(email_type, prompts['welcome']))
     
     return jsonify({'email': email, 'type': email_type})
+
+# ============== PRODUCT RESEARCH ==============
+
+@app.route('/research')
+def product_research():
+    """Product research and trending products"""
+    return render_template('research.html')
+
+@app.route('/api/research-product', methods=['POST'])
+def research_product():
+    """AI researches a product niche"""
+    from ai_ceo import ceo
+    
+    data = request.json
+    niche = data.get('niche', '')
+    
+    prompt = f"""Analyze this product niche for dropshipping: {niche}
+
+Tell me:
+1. Is it a good product to sell? (pros/cons)
+2. What's the ideal selling price?
+3. Who is the target audience?
+4. What marketing angles work best?
+5. Any red flags to avoid?
+
+Be specific and helpful."""
+    
+    analysis = ceo.think(prompt)
+    
+    return jsonify({'niche': niche, 'analysis': analysis})
+
+@app.route('/api/trending-niches', methods=['GET'])
+def trending_niches():
+    """Get trending niches suggestions"""
+    from ai_ceo import ceo
+    
+    prompt = """List 10 trending product niches for dropshipping in 2024/2025. 
+For each, give a brief one-sentence on why it's popular.
+Keep it simple - just the niche name and one sentence."""
+    
+    niches = ceo.think(prompt)
+    
+    return jsonify({'niches': niches})

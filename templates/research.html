@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Product Research{% endblock %}
+{% block content %}
+<h2><i class="bi bi-search"></i> Product Research</h2>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">🔍 Analyze a Niche</h5></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Product/Niche</label>
+                    <input type="text" id="research-niche" class="form-control" placeholder="e.g., Pet Supplies, Yoga Mats, Phone Cases">
+                </div>
+                <button onclick="researchNiche()" class="btn btn-primary">Analyze</button>
+                <div id="research-result" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">🔥 Trending Niches</h5></div>
+            <div class="card-body">
+                <button onclick="loadTrending()" class="btn btn-warning mb-3">Load Trending</button>
+                <div id="trending-result"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function researchNiche() {
+    document.getElementById('research-result').innerHTML = '<p>Analyzing...</p>';
+    fetch('/api/research-product', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({niche: document.getElementById('research-niche').value})
+    }).then(r => r.json()).then(data => {
+        document.getElementById('research-result').innerHTML = '<pre class="bg-light p-3">' + data.analysis + '</pre>';
+    });
+}
+function loadTrending() {
+    document.getElementById('trending-result').innerHTML = '<p>Loading...</p>';
+    fetch('/api/trending-niches').then(r => r.json()).then(data => {
+        document.getElementById('trending-result').innerHTML = '<pre class="bg-light p-3">' + data.niches + '</pre>';
+    });
+}
+</script>
+{% endblock %}

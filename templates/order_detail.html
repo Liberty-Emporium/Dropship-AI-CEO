@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-receipt"></i> Order {{ order.id }}</h2>
+    <a href="/orders" class="btn btn-secondary">Back to Orders</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ order.customer_name }}</p>
+                <p><strong>Email:</strong> {{ order.customer_email }}</p>
+                <p><strong>Address:</strong><br>
+                {{ order.customer_address }}<br>
+                {{ order.customer_city }}, {{ order.customer_state }} {{ order.customer_zip }}</p>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Order Items</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                    <tr>
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>${{ "%.2f"|format(order.price) }}</td>
+                        <td>${{ "%.2f"|format(order.price * order.quantity) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><strong>Shipping</strong></td>
+                        <td>${{ "%.2f"|format(order.shipping_cost) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><strong>Order Total</strong></td>
+                        <td><strong>${{ "%.2f"|format(order.total) }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Status</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if order.status == 'pending' %}
+                    <span class="badge bg-warning fs-5">PENDING</span>
+                {% elif order.status == 'shipped' %}
+                    <span class="badge bg-primary fs-5">SHIPPED</span>
+                {% elif order.status == 'delivered' %}
+                    <span class="badge bg-success fs-5">DELIVERED</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if order.tracking_number %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Tracking</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Carrier:</strong> {{ order.carrier }}</p>
+                <p><strong>Tracking #:</strong> {{ order.tracking_number }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="d-grid gap-2">
+            {% if order.status == 'pending' %}
+                <a href="/order/{{ order.id }}/ship" class="btn btn-success">Ship Order</a>
+            {% elif order.status == 'shipped' %}
+                <a href="/order/{{ order.id }}/delivered" class="btn btn-primary">Mark Delivered</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
